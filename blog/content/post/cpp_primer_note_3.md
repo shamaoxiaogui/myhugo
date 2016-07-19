@@ -1,7 +1,7 @@
 +++
 Categories = ["Development"]
 Description = "cpp primer 读书笔记"
-Tags = ["Development"]
+Tags = ["Development","c++"]
 date = "2016-07-19T17:05:39+08:00"
 title = "cpp primer 第三章笔记"
 
