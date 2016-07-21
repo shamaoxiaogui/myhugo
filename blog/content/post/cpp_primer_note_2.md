@@ -87,3 +87,24 @@ title = "cpp primer 第二章笔记"
 1. 单纯的auto的推断效果：忽略顶层const，然后把表达式的值算出来是啥类型auto就是啥类型。底层const保留。加const的auto推断出来才是顶层const的，auto &推断出来才是引用
 1. decltype基本保留变量的所有属性，尤其是当变量为引用时推断出来的结果也是引用。当其表达式是解引用操作时，结果必为引用，而其跟双括号表达式（加了括号的变量），结果必为引用
 1. 注意类内初始值的初始化顺序：类内初始值－》构造函数初始化列表－》构造函数体
+
+---
+
+## 2016-07-21添加
+
+我又回过头来看了一下，关于initializer_list，之前的示例代码中使用的是左值，所以拷贝了两次，但是当我给类添加移动构造函数并使用std::move将其转换为右值后：
+```cpp
+std::cout<<"==============="<<std::endl;
+std::vector<tc> tcv3{std::move(t1),std::move(t2),std::move(t3)};
+```
+```shell
+===============
+move a class!
+move a class!
+move a class!
+copy a class!
+copy a class!
+copy a class!
+```
+出现了这种结果。
+似乎不太对，按道理来说initializer_list的设计应该是为了方便用临时量来构造一个集合（按我自己的理解），既然是临时量标准库应该提供转移语义，现在看来并没有。其它的情况我找到了stackoverflow上的一个[讨论](http://stackoverflow.com/questions/8193102/initializer-list-and-move-semantics)，显然想要手动从里面转移出临时量也不可以，怪怪的感觉
