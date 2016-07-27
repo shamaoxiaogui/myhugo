@@ -59,3 +59,68 @@ title = "深入理解cpp对象模型 第四章笔记"
     static func
     ```
 这个例子说明，虽然调用静态函数不需要对象，但是有的编译器还是会对获得对象的表达式进行运算还有，对静态成员函数取地址，得到是是一个非成员函数指针
+1. 关于继承体系中的虚函数，书中有两点建议：
+    1. 由于多继承时虚函数调用开销加大，编译器会对短的虚函数进行优化，所以虚函数尽量写的短一些。
+    1. 不要在虚基类中定义非静态成员，编译器会做一些复杂的操作，影响性能。
+1. 成员函数指针的讨论：
+    1. 静态成员、静态成员函数、非静态成员函数的指针都是其实际内存地址，但是对于非静态成员函数，调用还需要提供this指针，所以这个地址是“不完整”的
+
+		```cpp
+		#include <iostream>
+		using namespace std;
+		class Someclass{
+		public:
+			static void sfunc(){cout<<"static func"<<endl;}
+			static int smember;
+			void nsfunc(){cout<<"nonstatic func"<<endl;};
+			int nsmember;
+		};
+		int Someclass::smember=1;
+		int main(){
+			void (*sfp)();
+			int *smp;
+			void (Someclass::*nsfp)();
+			int Someclass::*nsmp;
+			sfp=&Someclass::sfunc;
+			smp=&Someclass::smember;
+			nsfp=&Someclass::nsfunc;
+			nsmp=&Someclass::nsmember;
+			printf("p sfp: %p\n",sfp);
+			printf("p smp: %p\n",smp);
+			printf("p nsfp: %p\n",nsfp);
+			printf("p nsmp: %p\n",nsmp);
+			return 0;
+		}
+		```
+        ```shell
+        $ ./memberpointer.out
+        p sfp: 0x10cf11150
+        p smp: 0x10cf120e8
+        p nsfp: 0x10cf11190
+        p nsmp: 0x0
+        ```
+    1. 而虚函数成员指针的调用则更加复杂和低效。通常编译器可以在编译期判断调用是否为虚函数，对于非虚函数，直接使用指针指向的函数地址，而对于虚函数，由于编译器无法确定最终调用的是哪个函数，往往使用一些终端手段。比如在成员虚函数指针中存放该虚函数在虚表中的索引，再间接调用。对于我们用户而言，只需要知道虚函数的指针与普通成员函数指针同样使用，也可以运行时多态，但是效率更低就好了。
+
+        ```cpp
+ 		#include <iostream>
+		using namespace std;
+		struct base{
+			virtual void func(){cout<<"base func"<<endl;}
+			virtual ~base()=default;
+		};
+		struct derived:public base{
+			void func(){cout<<"drived func"<<endl;}
+		};
+		int main(){
+			void (base::*bpf)()=&base::func;
+			base *bp=new derived;
+			(bp->*bpf)();
+			delete bp;
+			return 0;
+		}
+        ```
+        ```shell
+        $ ./virtualpointer.out
+        drived func
+        ```
+    1. 最后，inline函数在引发参数副作用的时候（比如形参传入了一个函数调用，本意是使用该函数的返回值做形参），通常会引入局部变量。inline内部的局部变量也会因为展开而参与name mangling。所以大量调用inline容易产生大量局部变量
