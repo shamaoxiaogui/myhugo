@@ -4,3 +4,9 @@
 [submodule "blog/public"]
 	path = blog/public
 	url = git@github.com:shamaoxiaogui/shamaoxiaogui.github.io.git
+[submodule "blog/themes/hugo-octopress"]
+	path = blog/themes/hugo-octopress
+	url = git@github.com:shamaoxiaogui/Hugo-Octopress.git
+[submodule "solarized-pygment"]
+	path = solarized-pygment
+	url = https://github.com/john2x/solarized-pygment.git
